@@ -1,4 +1,4 @@
-####Powered by python 3.5.2 and django 1.11.2
+#Powered by python 3.5.2 and django 1.11.2
 
 ###服务器资源管理
 - [1]机房、主机、巡检记录和人员的记录
