@@ -19,7 +19,6 @@ from hys_operation.admin import admin_site
 from hys_operation import views
 
 urlpatterns = [
-    url(r'^management/', admin_site.urls),
+    url(r'^', admin_site.urls),
     url(r'^admin/', admin.site.urls),
-    url(r'^$', views.index),
 ]

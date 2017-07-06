@@ -9,6 +9,7 @@ class MyAdminSite(admin.AdminSite):
 admin_site = MyAdminSite(name='management')
 
 
+
 class RecordAdmin(admin.ModelAdmin):
     list_display = ('go_time', 'server', 'net', 'trouble', 'mark', 'machine_room_id',
                     'temperature', 'humidity', 'act_man')
@@ -80,7 +81,7 @@ class MachineInfoAdmin(admin.ModelAdmin):
         return self.list_display
 
     def get_queryset(self, request):
-        """函数作用：使当前登录的用户只能看到自己负责的服务器,总监可以看到组内所有服务器"""
+        """函数作用：使普通用户只能看到自己负责的服务器,总监可以看到组内所有服务器,管理员可见所有"""
         qs = super(MachineInfoAdmin, self).get_queryset(request)
         if request.user.is_superuser:
             return qs
@@ -89,6 +90,32 @@ class MachineInfoAdmin(admin.ModelAdmin):
             return qs.filter(machine_group__in=groups)
         else:
             return qs.filter(user=UserInfo.objects.filter(user_name=request.user))
+
+    def get_actions(self, request):
+        """函数作用：使普通用户界面不显示动做按钮,管理员可以"""
+        actions = super().get_actions(request)
+        if request.user.is_superuser or \
+                        UserInfo.objects.filter(user_name=request.user).values_list('privilege')[0][0] == 1:
+            actions = super().get_actions(request)
+        else:
+            actions = None
+        return actions
+
+    def has_add_permission(self, request):
+        """函数作用：使普通用户界面不显示添加按钮,管理员可以"""
+        if request.user.is_superuser or \
+                        UserInfo.objects.filter(user_name=request.user).values_list('privilege')[0][0] == 1:
+            return True
+        else:
+            return False
+
+    def has_delete_permission(self, request, obj=None):
+        """函数作用：使普通用户界面不显示删除按钮,管理员可以"""
+        if request.user.is_superuser or \
+                        UserInfo.objects.filter(user_name=request.user).values_list('privilege')[0][0] == 1:
+            return True
+        else:
+            return False
 
     list_display = ('machine_ip', 'application', 'colored_status', 'user', 'machine_model', 'cache',
                     'cpu', 'hard_disk', 'machine_os', 'idc', 'machine_group')
