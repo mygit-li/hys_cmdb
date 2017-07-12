@@ -14,7 +14,7 @@ class RecordAdmin(admin.ModelAdmin):
     list_display = ('go_time', 'server', 'net', 'trouble', 'mark', 'machine_room_id',
                     'temperature', 'humidity', 'act_man')
     fk_fields = ('machine_room_id', 'act_man')
-    list_per_page = 15
+    list_per_page = 10
     list_filter = ('trouble', 'go_time', 'act_man__user_name', 'machine_room_id__machine_room_name')
     list_editable = ['machine_room_id', 'temperature', 'humidity', 'net', 'server', 'trouble', 'mark', 'act_man']
     ordering = ('-go_time',)
