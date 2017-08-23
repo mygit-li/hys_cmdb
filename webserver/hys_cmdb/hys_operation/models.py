@@ -32,7 +32,6 @@ class UserInfo(models.Model):
         db_table = 'user_info'
         verbose_name = '用户表'
         verbose_name_plural = "用户表"
-        managed = False
 
     def __str__(self):
         return self.user_name
@@ -158,23 +157,15 @@ class AuthUserGroups(models.Model):
 class DataPaperStore(models.Model):
     """数据单备案表"""
     project_name = models.CharField(max_length=100, verbose_name=u"项目归属")
-    to_mail = models.EmailField(verbose_name=u"接收邮箱")
-    data_selected = models.TextField(max_length=1000, verbose_name=u"数据选项")
+    to_mail = models.CharField(max_length=100, verbose_name=u"接收邮箱")
+    data_selected = models.CharField(max_length=1000, verbose_name=u"数据选项")
     proposer = models.CharField(max_length=100, verbose_name=u"申请人")
     frequency = models.CharField(max_length=400, verbose_name=u"频率")
-    commit_date = models.DateField(auto_now_add=True, verbose_name=u"申请时间")
-    start_date = models.DateField(null=True, verbose_name=u"开始时间")
-    end_date = models.DateField(null=True, verbose_name=u"结束时间")
-    sql = models.TextField(max_length=100000, verbose_name=u"sql语句")
-    paper_num = models.CharField(max_length=50, verbose_name=u"备案号")
-    is_sure = models.BooleanField(default=False, verbose_name=u"是否已确认")
-    mark = models.TextField(max_length=10000, null=True, verbose_name=u"备注")
+    commit_date = models.DateField(null=True, verbose_name=u"申请时间")
+    sql = models.TextField(max_length=10000, verbose_name=u"sql语句")
+    paper_num = models.CharField(max_length=10, verbose_name=u"备案号")
 
     class Meta:
         db_table = 'data_paper_store'
         verbose_name = '数据单备案表'
         verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return self.project_name + '||' + self.paper_num
-

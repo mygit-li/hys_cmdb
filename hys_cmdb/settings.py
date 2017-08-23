@@ -25,7 +25,7 @@ SECRET_KEY = '2d#%_(qvnof-d)e)h8m95gpfou&vo5&nb+m26so3l-nc3%p_iv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.168.250', 'localhost']
+ALLOWED_HOSTS = ['192.168.168.250', 'localhost', '192.168.5.94']
 
 
 # Application definition
@@ -53,10 +53,11 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'hys_cmdb.urls'
 
+temp = os.path.join(BASE_DIR, 'templates')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [temp, ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -132,4 +133,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static/own/')
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static/own/')
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+
+
