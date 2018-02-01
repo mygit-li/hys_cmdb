@@ -25,7 +25,45 @@ SECRET_KEY = '2d#%_(qvnof-d)e)h8m95gpfou&vo5&nb+m26so3l-nc3%p_iv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.168.250', 'localhost', '192.168.5.94']
+LOGGING = {
+    'version': 1,
+    # 如果disable_existing_loggers 被设置为True（这是默认值），那么默认配置中的所有记录器将被禁用
+    'disable_existing_loggers': False,
+    # 过滤器
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },  # 针对 DEBUG = True 的情况
+    },
+    # 对日志信息进行格式化，每个字段对应了日志格式中的一个字段，更多字段参考官网文档，我认为这些字段比较合适，输出类似于下面的内容
+    # INFO 2016-09-03 16:25:20,067 /home/ubuntu/mysite/views.py views.py views get 29: some info...
+    'formatters': {
+        'standard': {
+            'format': '%(levelname)s %(asctime)s %(pathname)s %(filename)s %(module)s %(funcName)s %(lineno)d: %(message)s'
+        },
+    },
+    # 处理器
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            # 'filename': 'E:\\myweb\\hys_cmdb\\debug.log',
+            'filename': '/webserver/hys_cmdb/debug.log',
+            # 使用上面定义好的日志格式
+            'formatter': 'standard',
+        },
+    },
+    # 记录器
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+ALLOWED_HOSTS = ['192.168.168.250', 'localhost', '192.168.5.94','*']
 
 
 # Application definition
@@ -85,6 +123,7 @@ WSGI_APPLICATION = 'hys_cmdb.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
+        # 'NAME': 'test_cmdb',
         'NAME': 'hys_operation',
         'USER': 'root',
         'PASSWORD': '7ujm8ik,',
@@ -133,7 +172,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static/own/')
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
