@@ -23,8 +23,10 @@ def get_host_ip():
 
 if get_host_ip() == '192.168.168.250':
     logfilename = '/webserver/hys_cmdb/debug.log'
+    conn_db = 'hys_operation'
 else:
     logfilename = 'E:\\hys_cmdb\\debug.log'
+    conn_db = 'test_cmdb'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -134,11 +136,12 @@ WSGI_APPLICATION = 'hys_cmdb.wsgi.application'
 #         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
 #     }
 # }
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'cmdb003',
-        'NAME': 'hys_operation',
+        'NAME': conn_db,
         'USER': 'root',
         'PASSWORD': '7ujm8ik,',
         'HOST': '192.168.168.250',
