@@ -3,6 +3,38 @@ from django.utils.html import format_html
 from django.shortcuts import get_object_or_404
 
 
+class CoDicType(models.Model):
+    type_name = models.CharField(max_length=200, null=False, verbose_name=u"字典类型")
+    type_code = models.CharField(max_length=2, null=False, verbose_name=u"字典编码")
+
+    class Meta:
+        db_table = 'co_dic_type'
+        verbose_name = 'CO--字典类型表'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return str(self.type_name)
+
+
+class CoDicData(models.Model):
+    dic_name = models.CharField(max_length=200, null=False, verbose_name=u"字典名称")
+    seq = models.IntegerField(verbose_name=u"顺序号")
+    type = models.ForeignKey('CoDicType', verbose_name=u"字典类型")
+    parent_id = models.IntegerField(null=True, blank=True, verbose_name=u"上级id")
+
+    class Meta:
+        db_table = 'co_dic_data'
+        unique_together = ('dic_name', 'type', 'parent_id')
+        verbose_name = 'CO--字典表'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        if self.type.type_code == 'sv':
+            return "{}【id:{}】".format(self.dic_name, self.pk)
+        else:
+            return str(self.dic_name)
+
+
 class UserJob(models.Model):
     """职位表"""
     job_name = models.CharField(max_length=40, verbose_name=u"职位")             # 职位
@@ -27,13 +59,14 @@ class UserInfo(models.Model):
         (0, '普通权限'),
         (1, '高级权限'),
     )
-    privilege = models.IntegerField(choices=status_choice, verbose_name='显示权限', db_column='privilege')
+    privilege = models.IntegerField(choices=status_choice, default=0, verbose_name='显示权限', db_column='privilege')
+    mgr = models.ForeignKey('UserInfo', default=1, verbose_name='上级')
+    pro_belong = models.ForeignKey('ProjectType', default=1, verbose_name='项目归属')
 
     class Meta:
         db_table = 'user_info'
         verbose_name = 'AA--用户表'
         verbose_name_plural = verbose_name
-        managed = False
 
     def __str__(self):
         return self.user_name
@@ -83,11 +116,22 @@ class MachineInfo(models.Model):
     """主机信息表"""
     machine_model = models.CharField(max_length=40, verbose_name=u"型号")        # 型号
     machine_ip = models.CharField(max_length=100, unique=True, verbose_name=u"ip地址")           # ip
+    mapping_ip = models.CharField(max_length=40, blank=True, null=True, db_column='mapping_ip', verbose_name=u"映射ip")
     cache = models.CharField(max_length=12, verbose_name=u"内存")                # 内存
     cpu = models.CharField(max_length=4, verbose_name=u"cpu")                   # cpu
     hard_disk = models.CharField(max_length=200, verbose_name=u"磁盘")            # 磁盘大小
     machine_os = models.CharField(max_length=40, verbose_name=u"操作系统")           # 操作系统
     application = models.CharField(max_length=600, verbose_name=u"用途")         # 用途
+    
+    bandwidth_id = get_object_or_404(CoDicType, type_code='dk').pk
+    band_width = models.ForeignKey(CoDicData, related_name='bandwidth', limit_choices_to={'type': bandwidth_id},
+                                   db_column='band_width', default=228, verbose_name='带宽')
+    app_choices = (
+        ('WEB', 'WEB'),
+        ('DB', 'DB'),
+        ('虚拟机', '虚拟机'),
+    )
+    app_type = models.CharField(max_length=8, choices=app_choices, default='WEB', verbose_name=u"应用类型") 
     status_choices = (
         ('正常', '正常'),
         ('损坏', '损坏'),
@@ -138,7 +182,7 @@ class PartType(models.Model):
 
 class Record(models.Model):
     """巡检记录"""
-    go_time = models.DateTimeField(null=True,verbose_name=u"巡检时间")       # 巡检时间
+    go_time = models.DateTimeField(null=True, verbose_name=u"巡检时间")       # 巡检时间
     machine_room_id = models.ForeignKey('MachineRoom', db_column='machine_room_id', verbose_name=u"所属机房")  # 机房id
     temperature = models.IntegerField(null=True, verbose_name=u"温度")                        # 温度
     humidity = models.IntegerField(null=True, verbose_name=u"湿度")                 # 湿度
@@ -194,7 +238,7 @@ class DataPaperStore(models.Model):
         verbose_name_plural = verbose_name
 
     def colored_paper_num(self):
-        if self.paper_num :
+        if self.paper_num:
             color_code = 'blue'
         else:
             color_code = 'red'
@@ -208,35 +252,6 @@ class DataPaperStore(models.Model):
 
     def __str__(self):
         return self.project_name + '||' + self.paper_num
-
-
-class CoDicType(models.Model):
-    type_name = models.CharField(max_length=200, null=False, verbose_name=u"字典类型")
-    type_code = models.CharField(max_length=2, null=False, verbose_name=u"字典编码")
-
-    class Meta:
-        db_table = 'co_dic_type'
-        verbose_name = 'CO--字典类型表'
-        verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return str(self.type_name)
-
-
-class CoDicData(models.Model):
-    dic_name = models.CharField(max_length=200, null=False, verbose_name=u"字典名称")
-    seq = models.IntegerField(verbose_name=u"顺序号")
-    type = models.ForeignKey('CoDicType', verbose_name=u"字典类型")
-    parent_id = models.IntegerField(null=True, blank=True, verbose_name=u"上级id")
-
-    class Meta:
-        db_table = 'co_dic_data'
-        unique_together = ('dic_name', 'type', 'parent_id')
-        verbose_name = 'CO--字典表'
-        verbose_name_plural = verbose_name
-
-    def __str__(self):
-        return str(self.dic_name)
 
 
 class DailyReportDba(models.Model):
@@ -257,18 +272,18 @@ class DailyReportDba(models.Model):
 
     create_date = models.DateField(null=True, verbose_name="创建时间")
     db_server = models.ForeignKey(CoDicData, related_name='server', limit_choices_to={'type': server_type_id},
-                                  verbose_name='DB服务器')
+                                  default=66, verbose_name='DB服务器')
     db_user = models.ForeignKey(CoDicData, related_name='username', limit_choices_to={'type': db_user_id},
-                                verbose_name='DB用户名')
-    request = models.TextField(max_length=10000, null=False, verbose_name="需求")
+                                default=120, verbose_name='DB用户名')
+    request = models.TextField(max_length=10000, null=True, verbose_name="需求")
     request_type = models.ForeignKey(CoDicData, related_name='re', limit_choices_to={'type_id': request_type_id},
-                                     verbose_name='需求类型')
+                                     default=89, verbose_name='需求类型')
     de_proposer = models.ForeignKey(CoDicData, related_name='pro', limit_choices_to={'type_id': proposer_de_id},
-                                 verbose_name='申请人(开发)')
+                                    default=3, verbose_name='申请人(开发)')
     fde_proposer = models.ForeignKey(CoDicData, related_name='fpr', limit_choices_to={'type_id': operator_fde_id},
-                                 verbose_name='申请人(非开发)')
+                                     default=56, verbose_name='申请人(非开发)')
     operator = models.ForeignKey(CoDicData, related_name='oper', limit_choices_to={'type_id': operator_type_id},
-                                 verbose_name='操作人')
+                                 default=2, verbose_name='操作人')
     scripts = models.TextField(max_length=10000, null=True, blank=True, verbose_name="脚本")
     is_complete = models.BooleanField(default=False, verbose_name="是否已完成")
     remark = models.TextField(max_length=10000, null=True, blank=True, verbose_name=u"备注")
@@ -281,3 +296,77 @@ class DailyReportDba(models.Model):
     def __str__(self):
         return str(self.pk)
 
+
+class ProjectType(models.Model):
+    project_type_name = models.CharField(max_length=2000, verbose_name=u"项目归属名称")
+
+    class Meta:
+        db_table = 'project_type'
+        verbose_name = 'CO--项目归属'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.project_type_name
+
+
+class Project(models.Model):
+    domain_name = models.CharField(unique=True, max_length=200, verbose_name="域名")
+    project_name = models.CharField(max_length=2000, verbose_name="项目名称")
+    project_type = models.ForeignKey('ProjectType', related_name='gs', verbose_name='项目归属')
+    project_head = models.ForeignKey('UserInfo', related_name='fz', verbose_name='项目负责人')
+    fde_charge = models.ManyToManyField(UserInfo, related_name='nb', verbose_name='内部负责人')
+    de_charge = models.ManyToManyField(UserInfo, related_name='kf', verbose_name='开发负责人')
+    create_date = models.DateTimeField(verbose_name="创建时间")
+
+    class Meta:
+        db_table = 'project'
+        verbose_name = 'AA--项目表'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.domain_name
+
+
+class DailyReportOsa(models.Model):
+    """
+        "8"	"项目"	"xm"
+        "9"	"操作类型"	"cz"
+        "2"	"处理人员"	"hd"
+        "3"	"申请人员(开发)"	"po"
+        "6"	"申请人员(非开发)"	"fp"
+    """
+    project_id = get_object_or_404(CoDicType, type_code='xm').pk
+    oper_type_id = get_object_or_404(CoDicType, type_code='cz').pk
+    proposer_de_id = get_object_or_404(CoDicType, type_code='po').pk
+    operator_type_id = get_object_or_404(CoDicType, type_code='hd').pk
+    proposer_fde_id = get_object_or_404(CoDicType, type_code='fp').pk
+
+    create_date = models.DateField(null=True, verbose_name="创建时间")
+    project_type = models.ForeignKey(ProjectType, default=1, verbose_name='项目归属')
+    project = models.ForeignKey(Project, default=1, verbose_name='项目')
+    # project = models.CharField(max_length=400, verbose_name='项目')
+    machine_room_id = models.ForeignKey('MachineRoom', db_column='machine_room_id', default=3,
+                                        verbose_name=u"所属机房")
+    web_server = models.ForeignKey(MachineInfo, related_name='web_server', limit_choices_to={'app_type': 'WEB'},
+                                   null=True, verbose_name='WEB服务器')
+    db_server = models.ForeignKey(MachineInfo, related_name='db_server', limit_choices_to={'app_type': 'DB'},
+                                  null=True, verbose_name='DB服务器')
+    operations = models.ForeignKey(CoDicData, related_name='op', limit_choices_to={'type_id': oper_type_id},
+                                   null=True, verbose_name='操作类型')
+    de_proposer = models.ForeignKey(CoDicData, related_name='de', limit_choices_to={'type_id': proposer_de_id},
+                                    null=True, verbose_name='申请人(开发)')
+    fde_proposer = models.ForeignKey(CoDicData, related_name='fde', limit_choices_to={'type_id': proposer_fde_id},
+                                     null=True, verbose_name='申请人(非开发)')
+    operator = models.ForeignKey(CoDicData, related_name='opt', limit_choices_to={'type_id': operator_type_id},
+                                 null=True, verbose_name='操作人')
+    scripts = models.TextField(max_length=10000, null=True, blank=True, verbose_name="操作")
+    is_complete = models.BooleanField(default=False, verbose_name="是否已完成")
+    remark = models.TextField(max_length=10000, null=True, blank=True, verbose_name=u"备注")
+
+    class Meta:
+        db_table = 'daily_report_osa'
+        verbose_name = 'AA--日志(OSA)'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return str(self.pk)

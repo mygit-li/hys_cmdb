@@ -19,5 +19,11 @@ from hys_operation import views
 urlpatterns = [
     url(r'^sub_users/(?P<obj_id>\d+)', views.get_sub_users),
     url(r'^sub_servers/(?P<obj_id>\d+)', views.get_sub_servers),
+    url(r'^sub_web_machines/(?P<obj_id>\d+)', views.get_sub_web_machines),
+    url(r'^sub_db_machines/(?P<obj_id>\d+)', views.get_sub_db_machines),
+    url(r'^sub_de_users/(?P<obj_id>\d+)', views.get_sub_de_users),
+    url(r'^sub_fde_users/(?P<obj_id>\d+)', views.get_sub_fde_users),
+    url(r'^sub_pro_types/(?P<obj_id>\d+)', views.get_sub_pro_types),
     url(r'^download/(?P<paper_num>\w+)', views.download, name='download'),
+    url(r'^make_pwd/', views.make_pwd, name='make_pwd'),
 ]

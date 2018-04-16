@@ -11,6 +11,20 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import socket
+def get_host_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+    return ip
+
+if get_host_ip() == '192.168.168.250':
+    logfilename = '/webserver/hys_cmdb/debug.log'
+else:
+    logfilename = 'E:\\hys_cmdb\\debug.log'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,8 +61,8 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            # 'filename': 'E:\\myweb\\hys_cmdb\\debug.log',
-            'filename': '/webserver/hys_cmdb/debug.log',
+            'filename': logfilename,
+            # 'filename': '/webserver/hys_cmdb/debug.log',
             # 使用上面定义好的日志格式
             'formatter': 'standard',
         },
@@ -123,7 +137,7 @@ WSGI_APPLICATION = 'hys_cmdb.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        # 'NAME': 'test_cmdb',
+        # 'NAME': 'cmdb003',
         'NAME': 'hys_operation',
         'USER': 'root',
         'PASSWORD': '7ujm8ik,',
