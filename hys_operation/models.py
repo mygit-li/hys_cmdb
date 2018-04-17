@@ -18,9 +18,9 @@ class CoDicType(models.Model):
 
 class CoDicData(models.Model):
     dic_name = models.CharField(max_length=200, null=False, verbose_name=u"字典名称")
-    seq = models.IntegerField(verbose_name=u"顺序号")
     type = models.ForeignKey('CoDicType', verbose_name=u"字典类型")
     parent_id = models.IntegerField(null=True, blank=True, verbose_name=u"上级id")
+    seq = models.IntegerField(default=1, null=True, blank=True, verbose_name="顺序号")
 
     class Meta:
         db_table = 'co_dic_data'
