@@ -120,7 +120,9 @@ class MachineInfo(models.Model):
     cache = models.CharField(max_length=12, verbose_name=u"内存")                # 内存
     cpu = models.CharField(max_length=4, verbose_name=u"cpu")                   # cpu
     hard_disk = models.CharField(max_length=200, verbose_name=u"磁盘")            # 磁盘大小
-    machine_os = models.CharField(max_length=40, verbose_name=u"操作系统")           # 操作系统
+    os_type_id = get_object_or_404(CoDicType, type_code='xt').pk
+    machine_os = models.ForeignKey(CoDicData, related_name='machine_os', limit_choices_to={'type_id': os_type_id},
+                                   verbose_name='操作系统')
     application = models.CharField(max_length=600, verbose_name=u"用途")         # 用途
     
     bandwidth_id = get_object_or_404(CoDicType, type_code='dk').pk
@@ -129,7 +131,6 @@ class MachineInfo(models.Model):
     app_choices = (
         ('WEB', 'WEB'),
         ('DB', 'DB'),
-        ('虚拟机', '虚拟机'),
     )
     app_type = models.CharField(max_length=8, choices=app_choices, default='WEB', verbose_name=u"应用类型") 
     status_choices = (
@@ -182,17 +183,20 @@ class PartType(models.Model):
 
 class Record(models.Model):
     """巡检记录"""
-    go_time = models.DateTimeField(null=True, verbose_name=u"巡检时间")       # 巡检时间
+    operator_type_id = get_object_or_404(CoDicType, type_code='hd').pk
+
+    go_time = models.DateTimeField(null=True, verbose_name=u"巡检时间")  # 巡检时间
     machine_room_id = models.ForeignKey('MachineRoom', db_column='machine_room_id', verbose_name=u"所属机房")  # 机房id
-    temperature = models.IntegerField(null=True, verbose_name=u"温度")                        # 温度
-    humidity = models.IntegerField(null=True, verbose_name=u"湿度")                 # 湿度
-    net = models.CharField(max_length=200, verbose_name=u"网络设备")                         # 网络设备
-    trouble = models.CharField(max_length=200, verbose_name=u"故障内容")                         # 服务器
+    temperature = models.IntegerField(null=True, verbose_name=u"温度")  # 温度
+    humidity = models.IntegerField(null=True, verbose_name=u"湿度")  # 湿度
+    net = models.CharField(max_length=200, verbose_name=u"网络设备")  # 网络设备
+    trouble = models.CharField(max_length=200, verbose_name=u"故障内容")  # 服务器
     server_ip_id = models.ForeignKey('MachineInfo', db_column='server_ip_id', verbose_name="服务器")
     trouble_type_id = models.ForeignKey('PartType', db_column='trouble_type_id', verbose_name="故障类型")
-    handle = models.CharField(max_length=200, default='', verbose_name=u"故障处理")                         # 故障处理
-    mark = models.CharField(max_length=200, verbose_name=u"备注")                         # 备注
-    act_man = models.ForeignKey('UserInfo', verbose_name=u"巡检人")    # 巡检人
+    handle = models.CharField(max_length=200, default='', verbose_name=u"故障处理")  # 故障处理
+    mark = models.CharField(max_length=200, verbose_name=u"备注")  # 备注
+    act_man = models.ForeignKey(CoDicData, related_name='act', limit_choices_to={'type_id': operator_type_id},
+                                verbose_name='巡检人')
 
     class Meta:
         db_table = 'record'
